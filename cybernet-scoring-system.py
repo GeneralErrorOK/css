@@ -1,9 +1,13 @@
 import httpx
+from sqlalchemy import create_engine, MetaData
 from textual.app import App
 from textual.app import ComposeResult
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Header, Footer, Digits, Log, Label
+
+from models.scores import Service, ServiceScore, ServiceStatus
+from services.score_store import ScoreStoreService
 
 
 class RoundNumberDisplay(Widget):
@@ -21,18 +25,15 @@ class CybernetScoringSystem(App):
     def __init__(self, num_samples: int, *args, **kwargs):
         self._index_counter = 0
         self._num_samples = num_samples
+        self._engine = create_engine("sqlite:///db/css.sqlite3", echo=False)
+        MetaData().create_all(bind=self._engine)
+        self._score_store = ScoreStoreService(self._engine)
         super().__init__(*args, **kwargs)
 
 
     async def _pull_update(self):
-        async with httpx.AsyncClient() as client:
-            response = await client.get(f"http://127.0.0.1:8000/api/scoreboard/{self._num_samples}/{self._index_counter}")
-
-        if response.status_code != 200:
-            return
+        await self._score_store.get_scores(f"http://127.0.0.1:8000/api/scoreboard/{self._num_samples}/{self._index_counter}")
         self._index_counter += 1
-        self.round = response.json()["success"]["round"]
-        self.log.info(self.round)
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -40,7 +41,6 @@ class CybernetScoringSystem(App):
         yield Footer()
 
     def on_mount(self) -> None:
-        self.log("Mounted!")
         self._pull_update()
         self.set_interval(5, self._pull_update)
 
