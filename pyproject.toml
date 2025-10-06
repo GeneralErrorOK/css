@@ -1,0 +1,15 @@
+[project]
+name = "cybernet-scoring-system"
+version = "0.1.0"
+description = "A fancy way of displaying the Cybernet scoreboard!"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "httpx>=0.28.1",
+    "textual>=6.2.1",
+]
+
+[dependency-groups]
+dev = [
+    "textual-dev>=1.7.0",
+]
