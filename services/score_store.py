@@ -3,7 +3,7 @@ from sqlalchemy import Engine, select
 from sqlalchemy.orm import Session
 from textual import log
 
-from models.scores import Service, ServiceStatus, HighscoreAndSLA, ServiceScore
+from models.scores import Service, ServiceStatus, HighscoreAndSLA, ServiceScore, GameRound
 
 
 class ScoreStoreService:
@@ -12,14 +12,22 @@ class ScoreStoreService:
 
     def _round_is_registered(self, round_num: int) -> bool:
         with Session(self._db_engine) as session:
-            round_stmt = select(ServiceStatus).where(ServiceStatus.round_nr == round_num)
-            round_result = session.scalars(round_stmt).first()
+            stmt = select(GameRound).where(GameRound.round_nr == round_num)
+            round_result = session.scalars(stmt).first()
         return round_result is not None
 
+    def _get_round_id(self, round_nr: int) -> int | None:
+        with Session(self._db_engine) as session:
+            stmt = select(GameRound).where(GameRound.round_nr == round_nr)
+            round_result = session.scalars(stmt).first()
+            if round_result is None:
+                log.error(f"Round {round_nr} not found!")
+            else:
+                return round_result.id
 
     def _process_service_status(self, scoreboard: dict) -> None:
         me = scoreboard["me"]
-        round_nr = scoreboard["round"]
+        round_id = self._get_round_id(scoreboard["round"])
         services_statuses = []
         for highscore_unit in scoreboard["highscore"]:
             if highscore_unit["name"] == me:
@@ -41,7 +49,7 @@ class ScoreStoreService:
                 else:
                     service_id = found_service.id
                 # 2) Add datapoint to ServiceStatus
-                service_status = ServiceStatus(service_id=service_id, round_nr=round_nr, status=status)
+                service_status = ServiceStatus(service_id=service_id, round_id=round_id, status=status)
                 session.add(service_status)
                 session.commit()
 
@@ -50,67 +58,89 @@ class ScoreStoreService:
             # No need to process an empty score ;)
             return
         me = scoreboard["me"]
-        round_nr = scoreboard["round"]
+        round_id = self._get_round_id(scoreboard["round"])
         label = scoreboard["highscore_labels"][-1]
+        highscores = []
+        sla = ""
+        highscore = 0
         for highscore_unit in scoreboard["highscore"]:
             if highscore_unit["name"] == me:
                 sla = highscore_unit["sla"]
                 highscore = highscore_unit["scores"][-1]
+            highscores.append(highscore_unit["scores"][-1])
 
-                with Session(self._db_engine) as session:
-                    highscore_entry = HighscoreAndSLA(
-                        round_nr=round_nr,
-                        label=label,
-                        score=highscore,
-                        sla=sla,
-                    )
-                    session.add(highscore_entry)
-                    session.commit()
-                break
+        highscores.sort()
+        position = highscores.index(highscore) + 1
+
+        with Session(self._db_engine) as session:
+            highscore_entry = HighscoreAndSLA(
+                round_id=round_id,
+                label=label,
+                score=highscore,
+                position=position,
+                sla=sla,
+            )
+            session.add(highscore_entry)
+            session.commit()
 
     def _get_service_id_from_name(self, name: str) -> int | None:
         with Session(self._db_engine) as session:
-            stmt = select(Service).where(Service.name.ilike(name))
+            stmt = select(Service).where(Service.name.ilike("%" + name + "%"))
             result = session.scalars(stmt).first()
             if result is None:
-                return None
+                if len(name) <= 2:
+                    return None
+                else:
+                    return self._get_service_id_from_name(name[1:-1])
             else:
                 return result.id
 
     def _process_service_scores(self, scoreboard: dict) -> None:
-        round_nr = int(scoreboard["round"])
+        round_id = self._get_round_id(scoreboard["round"])
         for service_name, service_stats in scoreboard["missions"].items():
             service_id = self._get_service_id_from_name(service_name)
             if service_id is None:
                 log.error("Couldn't find matching service id for %s", service_name)
-                return
+                continue
             offense_total = service_stats["offense_points"]
             defence_total = service_stats["defence_points"]
 
             with Session(self._db_engine) as session:
                 service_score = ServiceScore(
                     service_id=service_id,
-                    round_nr=round_nr,
+                    round_id=round_id,
                     offense_total=offense_total,
                     defence_total=defence_total,
                 )
                 session.add(service_score)
                 session.commit()
+    def _register_round(self, round_num: int) -> None:
+        with Session(self._db_engine) as session:
+            new_round = GameRound(round_nr=round_num)
+            session.add(new_round)
+            session.commit()
 
+    async def get_scores(self, url: str) -> bool:
+        """Request score update from server.
 
-    async def get_scores(self, url: str) -> None:
+        Returns:
+            True on update, False otherwise."""
         async with httpx.AsyncClient() as client:
             response = await client.get(url)
 
         if response.status_code != 200:
             log.error("Failed to get scores!")
-            return
+            return False
 
         scoreboard = response.json().get("success")
         round_nr = int(scoreboard["round"])
         if self._round_is_registered(round_nr):
-            return
+            return False
+        else:
+            self._register_round(round_nr)
 
         self._process_service_status(scoreboard)
         self._process_highscore_and_sla(scoreboard)
         self._process_service_scores(scoreboard)
+
+        return True
