@@ -24,3 +24,11 @@ class ServiceScore(Base):
     round_nr: Mapped[int]
     offense_total: Mapped[int]
     defence_total: Mapped[int]
+
+class HighscoreAndSLA(Base):
+    __tablename__ = "high_scores"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    round_nr: Mapped[int]
+    label: Mapped[str]
+    score: Mapped[int]
+    sla: Mapped[str]

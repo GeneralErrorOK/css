@@ -6,7 +6,7 @@ from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Header, Footer, Digits, Log, Label
 
-from models.scores import Service, ServiceScore, ServiceStatus
+from models.scores import Base
 from services.score_store import ScoreStoreService
 
 
@@ -26,7 +26,7 @@ class CybernetScoringSystem(App):
         self._index_counter = 0
         self._num_samples = num_samples
         self._engine = create_engine("sqlite:///db/css.sqlite3", echo=False)
-        MetaData().create_all(bind=self._engine)
+        Base.metadata.create_all(bind=self._engine)
         self._score_store = ScoreStoreService(self._engine)
         super().__init__(*args, **kwargs)
 
@@ -46,5 +46,5 @@ class CybernetScoringSystem(App):
 
 
 if __name__ == "__main__":
-    app = CybernetScoringSystem(num_samples=20)
+    app = CybernetScoringSystem(num_samples=100)
     app.run()
