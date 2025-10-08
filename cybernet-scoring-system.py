@@ -1,9 +1,8 @@
 from sqlalchemy import create_engine
 from textual.app import App
 from textual.app import ComposeResult
-from textual.containers import ItemGrid, Container
 from textual.reactive import reactive
-from textual.widgets import Header, Footer, Label
+from textual.widgets import Header, Footer
 
 from models.scores import Base
 from services.score_store import ScoreStoreService

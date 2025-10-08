@@ -3,7 +3,7 @@ from typing import Tuple
 from sqlalchemy import Engine, select, ScalarResult
 from sqlalchemy.orm import Session, selectinload
 
-from models.scores import GameRound, HighscoreAndSLA, ServiceScore, Service
+from models.scores import GameRound, HighscoreAndSLA, ServiceScore
 
 
 class StatsRetriever:
@@ -31,7 +31,9 @@ class StatsRetriever:
     def get_current_score_position_sla(self) -> Tuple[int, int, str]:
         game_round_id = self.get_current_round_number()
         with Session(self._engine) as session:
-            stmt = select(HighscoreAndSLA).where(HighscoreAndSLA.game_round_id == game_round_id)
+            stmt = select(HighscoreAndSLA).where(
+                HighscoreAndSLA.game_round_id == game_round_id
+            )
             dataset: HighscoreAndSLA = session.execute(stmt).scalar_one_or_none()
             if dataset is not None:
                 return dataset.score, dataset.position, dataset.sla
@@ -55,10 +57,7 @@ class StatsRetriever:
                 return {}
             for score in dataset:
                 if update.get(score.service.name) is None:
-                    update[score.service.name] = {
-                        "off_series": [],
-                        "def_series": []
-                    }
+                    update[score.service.name] = {"off_series": [], "def_series": []}
                 update[score.service.name]["off_series"].append(score.offense_total)
                 update[score.service.name]["def_series"].append(score.defence_total)
                 update[score.service.name]["off_total"] = score.offense_total

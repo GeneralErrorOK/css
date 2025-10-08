@@ -14,7 +14,9 @@ class Service(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     scores: Mapped[List["ServiceScore"]] = relationship(back_populates="service")
-    service_statuses: Mapped[List["ServiceStatus"]] = relationship(back_populates="service")
+    service_statuses: Mapped[List["ServiceStatus"]] = relationship(
+        back_populates="service"
+    )
 
 
 class GameRound(Base):
@@ -24,9 +26,15 @@ class GameRound(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     round_nr: Mapped[int] = mapped_column(unique=True)
-    service_scores: Mapped[List["ServiceScore"]] = relationship(back_populates="game_round")
-    high_scores: Mapped[List["HighscoreAndSLA"]] = relationship(back_populates="game_round")
-    service_statuses: Mapped[List["ServiceStatus"]] = relationship(back_populates="game_round")
+    service_scores: Mapped[List["ServiceScore"]] = relationship(
+        back_populates="game_round"
+    )
+    high_scores: Mapped[List["HighscoreAndSLA"]] = relationship(
+        back_populates="game_round"
+    )
+    service_statuses: Mapped[List["ServiceStatus"]] = relationship(
+        back_populates="game_round"
+    )
     scores: Mapped[List["ServiceScore"]] = relationship(back_populates="game_round")
 
 

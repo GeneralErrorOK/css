@@ -1,7 +1,6 @@
 from textual.app import ComposeResult
-from textual.containers import ItemGrid, Horizontal, Grid, Container, HorizontalGroup
+from textual.containers import HorizontalGroup
 from textual.reactive import reactive
-from textual.widget import Widget
 from textual.widgets import Label, Sparkline, Digits
 
 
