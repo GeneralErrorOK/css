@@ -3,7 +3,13 @@ from sqlalchemy import Engine, select
 from sqlalchemy.orm import Session
 from textual import log
 
-from models.scores import Service, ServiceStatus, HighscoreAndSLA, ServiceScore, GameRound
+from models.scores import (
+    Service,
+    ServiceStatus,
+    HighscoreAndSLA,
+    ServiceScore,
+    GameRound,
+)
 
 
 class ScoreStoreService:
@@ -49,7 +55,9 @@ class ScoreStoreService:
                 else:
                     service_id = found_service.id
                 # 2) Add datapoint to ServiceStatus
-                service_status = ServiceStatus(service_id=service_id, round_id=round_id, status=status)
+                service_status = ServiceStatus(
+                    service_id=service_id, game_round_id=round_id, status=status
+                )
                 session.add(service_status)
                 session.commit()
 
@@ -74,11 +82,12 @@ class ScoreStoreService:
 
         with Session(self._db_engine) as session:
             highscore_entry = HighscoreAndSLA(
-                round_id=round_id,
+                game_round_id=round_id,
                 label=label,
                 score=highscore,
                 position=position,
                 sla=sla,
+                me_team=me,
             )
             session.add(highscore_entry)
             session.commit()
@@ -97,23 +106,22 @@ class ScoreStoreService:
 
     def _process_service_scores(self, scoreboard: dict) -> None:
         round_id = self._get_round_id(scoreboard["round"])
-        for service_name, service_stats in scoreboard["missions"].items():
-            service_id = self._get_service_id_from_name(service_name)
-            if service_id is None:
-                log.error("Couldn't find matching service id for %s", service_name)
-                continue
-            offense_total = service_stats["offense_points"]
-            defence_total = service_stats["defence_points"]
+        me = scoreboard["me"]
+        for highscore_unit in scoreboard["highscore"]:
+            if highscore_unit["name"] == me:
+                our_services = highscore_unit["services"]
+                for service in our_services:
+                    service_id = self._get_service_id_from_name(service)
+                    with Session(self._db_engine) as session:
+                        service_score = ServiceScore(
+                            service_id=service_id,
+                            game_round_id=round_id,
+                            offense_total=our_services[service]["capture"],
+                            defence_total=our_services[service]["lost"],
+                        )
+                        session.add(service_score)
+                        session.commit()
 
-            with Session(self._db_engine) as session:
-                service_score = ServiceScore(
-                    service_id=service_id,
-                    round_id=round_id,
-                    offense_total=offense_total,
-                    defence_total=defence_total,
-                )
-                session.add(service_score)
-                session.commit()
     def _register_round(self, round_num: int) -> None:
         with Session(self._db_engine) as session:
             new_round = GameRound(round_nr=round_num)

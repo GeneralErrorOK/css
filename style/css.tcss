@@ -1,0 +1,52 @@
+TopRow {
+    layout: grid;
+    grid-size: 3;
+    grid-columns: 3fr 6fr 6fr;
+}
+
+ServiceRow {
+    layout: grid;
+    grid-size: 5;
+    grid-columns: 6fr 9fr 3fr 3fr 9fr;
+}
+
+Sparkline {
+    width: 100%;
+    margin: 2;
+}
+
+#off_s > .sparkline--max-color {
+    color: green;
+}
+#off_S > .sparkline--min-color {
+    color: red;
+}
+
+#def_s > .sparkline--max-color {
+    color: red;
+}
+#def_s > .sparkline--min-color {
+    color: green;
+}
+
+Digits {
+    border: white;
+    width: 100%;
+    text-align: center;
+}
+
+Label {
+    border: round white;
+    width: 100%;
+}
+
+.headerlabel {
+    text-align: center;
+    height: 3;
+}
+
+.servicelabel {
+    text-align: center;
+    padding: 1;
+    height: 5;
+}
