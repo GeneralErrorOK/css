@@ -29,7 +29,7 @@ class CybernetScoringSystem(App):
     ):
         self.url = url
         self.refresh_interval = refresh_interval
-        self._index_counter = 0
+        self._index_counter = 1
         self._counter = counter
         self._num_samples = num_samples
         self._engine = create_engine("sqlite:///db/css.sqlite3", echo=False)

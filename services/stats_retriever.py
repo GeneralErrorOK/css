@@ -1,7 +1,7 @@
 from typing import Tuple
 
 from sqlalchemy import Engine, select, ScalarResult
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session
 
 from models.scores import GameRound, HighscoreAndSLA, ServiceScore
 
@@ -46,8 +46,6 @@ class StatsRetriever:
             recent_round_number = self.get_current_round_number()
             stmt = (
                 select(ServiceScore)
-                .options(selectinload(ServiceScore.service))
-                .join(ServiceScore.service)
                 .where(ServiceScore.game_round_id > recent_round_number - 6)
                 .order_by(ServiceScore.game_round_id)
             )
@@ -60,7 +58,13 @@ class StatsRetriever:
                     update[score.service.name] = {"off_series": [], "def_series": []}
                 update[score.service.name]["off_series"].append(score.offense_total)
                 update[score.service.name]["def_series"].append(score.defence_total)
+
+                # This will overwrite the value multiple times but the most recent ones will stick and that's what counts ;)
                 update[score.service.name]["off_total"] = score.offense_total
                 update[score.service.name]["def_total"] = score.defence_total
-
+                update[score.service.name]["status"] = (
+                    score.service.service_statuses[-1].status
+                    if len(score.service.service_statuses) > 1
+                    else score.service.service_statuses[0].status
+                )
         return update.copy()

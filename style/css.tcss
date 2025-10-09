@@ -1,7 +1,40 @@
+.cOK {
+    outline: black;
+    color: black;
+    background: chartreuse;
+}
+
+.cWARNING {
+    outline: black;
+    color: black;
+    background: orange;
+}
+
+.cERROR {
+    outline: black;
+    color: black;
+    background: crimson;
+}
+
+.cNONE {
+    color: white;
+    background: slateblue;
+}
+
+Screen {
+    background: #301030;
+}
+
 TopRow {
     layout: grid;
     grid-size: 3;
     grid-columns: 3fr 6fr 6fr;
+    color: white;
+    background: slateblue;
+}
+
+Header, Footer {
+    background: slateblue;
 }
 
 ServiceRow {
@@ -16,17 +49,17 @@ Sparkline {
 }
 
 #off_s > .sparkline--max-color {
-    color: green;
+    color: chartreuse;
 }
 #off_S > .sparkline--min-color {
-    color: red;
+    color: crimson;
 }
 
 #def_s > .sparkline--max-color {
-    color: red;
+    color: crimson;
 }
 #def_s > .sparkline--min-color {
-    color: green;
+    color: chartreuse;
 }
 
 Digits {
@@ -36,7 +69,7 @@ Digits {
 }
 
 Label {
-    border: round white;
+    border: white;
     width: 100%;
 }
 
