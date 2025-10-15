@@ -4,6 +4,7 @@ from textual.app import ComposeResult
 from textual.reactive import reactive
 from textual.widgets import Header, Footer
 
+from config.settings import SCOREBOARD_URL, REFRESH_INTERVAL_S, NUM_SAMPLES, DEV_SERVER_MODE, DB_FILENAME
 from models.scores import Base
 from services.score_store import ScoreStoreService
 from services.stats_retriever import StatsRetriever
@@ -29,13 +30,13 @@ class CybernetScoringSystem(App):
     ):
         self.url = url
         self.refresh_interval = refresh_interval
-        self._index_counter = 25
+        self._index_counter = 1
         self._counter = counter
         self._num_samples = num_samples
-        self._engine = create_engine("sqlite:///db/css.sqlite3", echo=False)
-        # Start with a clean slate everytime, easier debugging
-        Base.metadata.drop_all(bind=self._engine)
-        Base.metadata.create_all(bind=self._engine)
+        self._engine = create_engine(f"sqlite:///db/{DB_FILENAME}", echo=False)
+        if DEV_SERVER_MODE:
+            Base.metadata.drop_all(bind=self._engine)
+            Base.metadata.create_all(bind=self._engine)
         self._score_store = ScoreStoreService(self._engine)
         self._stats_retriever = StatsRetriever(self._engine)
 
@@ -81,9 +82,9 @@ class CybernetScoringSystem(App):
 
 if __name__ == "__main__":
     app = CybernetScoringSystem(
-        url="http://127.0.0.1:8000/api/scoreboard",
-        refresh_interval=1,
-        num_samples=150,
-        counter=True,
+        url=SCOREBOARD_URL,
+        refresh_interval=REFRESH_INTERVAL_S,
+        num_samples=NUM_SAMPLES,
+        counter=DEV_SERVER_MODE,
     )
     app.run()
