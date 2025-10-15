@@ -31,8 +31,9 @@ class ServiceRow(HorizontalGroup):
     def _get_class_name_from_series(score_series: List[int], offense: bool) -> str:
         selection = score_series[-settings.TREND_LENGTH_ROUNDS :]
         # Can't measure trend over 1 item. Can't divide by zero.
-        if len(selection) == 1 or selection[0] == 0:
+        if len(selection) == 0 or len(selection) == 1 or selection[0] == 0:
             return "cNONE"
+
         difference_percent = ((selection[-1] - selection[0]) / selection[0]) * 100
 
         if offense:
@@ -58,14 +59,14 @@ class ServiceRow(HorizontalGroup):
         yield Label(self.service_name, classes="servicelabel", id="service_label")
         # Offense
         yield Sparkline(
-            data=self.service_updates.get(self.service_name, {}).get("off_series"),
+            data=self.service_updates.get(self.service_name, {}).get("off_diff"),
             id="off_s",
         )
         yield Digits(id="off_d")
         # Defence
         yield Digits(id="def_d")
         yield Sparkline(
-            data=self.service_updates.get(self.service_name, {}).get("def_series"),
+            data=self.service_updates.get(self.service_name, {}).get("def_diff"),
             id="def_s",
         )
 
@@ -83,10 +84,10 @@ class ServiceRow(HorizontalGroup):
             str(service_updates.get(self.service_name, {}).get("def_total"))
         )
         self.query_one("#off_d", Digits).classes = self._get_class_name_from_series(
-            service_updates.get(self.service_name, {}).get("off_series"), offense=True
+            service_updates.get(self.service_name, {}).get("off_diff"), offense=True
         )
         self.query_one("#def_d", Digits).classes = self._get_class_name_from_series(
-            service_updates.get(self.service_name, {}).get("def_series"), offense=False
+            service_updates.get(self.service_name, {}).get("def_diff"), offense=False
         )
 
         self.query_one("#off_s", Sparkline).data = service_updates.get(

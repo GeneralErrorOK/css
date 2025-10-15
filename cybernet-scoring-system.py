@@ -29,7 +29,7 @@ class CybernetScoringSystem(App):
     ):
         self.url = url
         self.refresh_interval = refresh_interval
-        self._index_counter = 1
+        self._index_counter = 25
         self._counter = counter
         self._num_samples = num_samples
         self._engine = create_engine("sqlite:///db/css.sqlite3", echo=False)
@@ -82,7 +82,7 @@ class CybernetScoringSystem(App):
 if __name__ == "__main__":
     app = CybernetScoringSystem(
         url="http://127.0.0.1:8000/api/scoreboard",
-        refresh_interval=5,
+        refresh_interval=1,
         num_samples=150,
         counter=True,
     )

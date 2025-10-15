@@ -46,7 +46,7 @@ class StatsRetriever:
             recent_round_number = self.get_current_round_number()
             stmt = (
                 select(ServiceScore)
-                .where(ServiceScore.game_round_id > recent_round_number - 6)
+                .where(ServiceScore.game_round_id > recent_round_number - 7) # We need 7 days to calculate 6 diffs
                 .order_by(ServiceScore.game_round_id)
             )
 
@@ -67,4 +67,22 @@ class StatsRetriever:
                     if len(score.service.service_statuses) > 1
                     else score.service.service_statuses[0].status
                 )
+        # Now we have the series, we need to calculate the differences for all services
+        for service in update:
+            update[service]["off_diff"] = []
+            update[service]["def_diff"] = []
+
+            for index, score in enumerate(update[service]["off_series"]):
+                if index == len(update[service]["off_series"]) - 1:
+                    break
+                update[service]["off_diff"].append(update[service]["off_series"][index + 1] - score)
+
+            for index, score in enumerate(update[service]["def_series"]):
+                if index == len(update[service]["def_series"]) - 1:
+                    break
+                update[service]["def_diff"].append(update[service]["def_series"][index + 1] - score)
+
+            update[service]["off_series"].pop(0)
+            update[service]["def_series"].pop(0)
+
         return update.copy()
