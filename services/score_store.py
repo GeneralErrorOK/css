@@ -134,7 +134,11 @@ class ScoreStoreService:
         Returns:
             True on update, False otherwise."""
         async with httpx.AsyncClient() as client:
-            response = await client.get(url)
+            try:
+                response = await client.get(url)
+            except httpx.ConnectError:
+                log.error("Failed to connect to server")
+                return False
 
         if response.status_code != 200:
             log.error("Failed to get scores!")

@@ -37,6 +37,10 @@ Header, Footer {
     background: slateblue;
 }
 
+.updateWarning {
+    background: crimson;
+}
+
 ServiceRow {
     layout: grid;
     grid-size: 5;

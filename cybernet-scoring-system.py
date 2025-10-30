@@ -42,6 +42,10 @@ class CybernetScoringSystem(App):
 
         super().__init__(*args, **kwargs)
 
+    def _toggle_update_warning(self):
+        self.query_one(Header).toggle_class("updateWarning")
+        self.query_one(Footer).toggle_class("updateWarning")
+
     async def _update_scores(self):
         if self._counter:
             updated = await self._score_store.get_scores(
@@ -66,6 +70,9 @@ class CybernetScoringSystem(App):
         self.service_updates = self._stats_retriever.get_service_updates_dict()
         self.service_updates = self.service_updates
 
+        self.set_timer(0.1, self._toggle_update_warning)
+        self.set_timer(5, self._toggle_update_warning)
+
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True, icon="⛊")
         yield TopRow().data_bind(current_score=CybernetScoringSystem.current_score)
@@ -76,7 +83,7 @@ class CybernetScoringSystem(App):
         yield Footer()
 
     def on_mount(self) -> None:
-        self._update_scores()
+        self.set_timer(0.1, self._update_scores)
         self.set_interval(self.refresh_interval, self._update_scores)
 
 

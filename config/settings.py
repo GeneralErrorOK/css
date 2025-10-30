@@ -12,7 +12,7 @@ SCOREBOARD_URL = "http://127.0.0.1:8000/api/scoreboard"
 """
 Interval to (try to) refresh the scores in seconds.
 """
-REFRESH_INTERVAL_S = 5
+REFRESH_INTERVAL_S = 10
 
 """
 Filename to use for the database (sqlite). This will be stored in ./db.
