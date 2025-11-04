@@ -46,7 +46,7 @@ class StatsRetriever:
             recent_round_number = self.get_current_round_number()
             stmt = (
                 select(ServiceScore)
-                .where(ServiceScore.game_round_id > recent_round_number - 7) # We need 7 days to calculate 6 diffs
+                .where(ServiceScore.game_round_id > recent_round_number - 25) # Take 25 samples
                 .order_by(ServiceScore.game_round_id)
             )
 
