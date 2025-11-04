@@ -33,7 +33,7 @@ class ScoreStoreService:
                 return round_result.id
 
     def _process_service_status(self, scoreboard: dict) -> None:
-        me = scoreboard["me"]
+        me = ME_TEAM
         round_id = self._get_round_id(scoreboard["round"])
         services_statuses = []
         for highscore_unit in scoreboard["highscore"]:
@@ -107,7 +107,7 @@ class ScoreStoreService:
 
     def _process_service_scores(self, scoreboard: dict) -> None:
         round_id = self._get_round_id(scoreboard["round"])
-        me = scoreboard["me"]
+        me = ME_TEAM
         for highscore_unit in scoreboard["highscore"]:
             if highscore_unit["name"] == me:
                 our_services = highscore_unit["services"]
