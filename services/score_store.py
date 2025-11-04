@@ -17,24 +17,23 @@ class ScoreStoreService:
     def __init__(self, db_engine: Engine) -> None:
         self._db_engine = db_engine
 
-    def _round_is_registered(self, round_num: int) -> bool:
+    def _round_is_registered(self, score_timestamp: str) -> bool:
         with Session(self._db_engine) as session:
-            stmt = select(GameRound).where(GameRound.round_nr == round_num)
+            stmt = select(GameRound).where(GameRound.score_timestamp == score_timestamp)
             round_result = session.scalars(stmt).first()
         return round_result is not None
 
-    def _get_round_id(self, round_nr: int) -> int | None:
+    def _get_round_id(self, timestamp: str) -> int | None:
         with Session(self._db_engine) as session:
-            stmt = select(GameRound).where(GameRound.round_nr == round_nr)
+            stmt = select(GameRound).where(GameRound.score_timestamp == timestamp)
             round_result = session.scalars(stmt).first()
             if round_result is None:
-                log.error(f"Round {round_nr} not found!")
+                log.error(f"Round {timestamp} not found!")
             else:
                 return round_result.id
 
-    def _process_service_status(self, scoreboard: dict) -> None:
+    def _process_service_status(self, scoreboard: dict, round_id: int) -> None:
         me = ME_TEAM
-        round_id = self._get_round_id(len(scoreboard["highscore_labels"]))
         services_statuses = []
         for highscore_unit in scoreboard["highscore"]:
             if highscore_unit["name"] == me:
@@ -62,12 +61,11 @@ class ScoreStoreService:
                 session.add(service_status)
                 session.commit()
 
-    def _process_highscore_and_sla(self, scoreboard: dict) -> None:
+    def _process_highscore_and_sla(self, scoreboard: dict, round_id: int) -> None:
         if len(scoreboard["highscore_labels"]) == 0:
             # No need to process an empty score ;)
             return
         me = ME_TEAM
-        round_id = self._get_round_id(len(scoreboard["highscore_labels"]))
         label = scoreboard["highscore_labels"][-1]
         highscores = []
         sla = ""
@@ -105,8 +103,7 @@ class ScoreStoreService:
             else:
                 return result.id
 
-    def _process_service_scores(self, scoreboard: dict) -> None:
-        round_id = self._get_round_id(len(scoreboard["highscore_labels"]))
+    def _process_service_scores(self, scoreboard: dict, round_id: int) -> None:
         me = ME_TEAM
         for highscore_unit in scoreboard["highscore"]:
             if highscore_unit["name"] == me:
@@ -123,11 +120,12 @@ class ScoreStoreService:
                         session.add(service_score)
                         session.commit()
 
-    def _register_round(self, round_num: int) -> None:
+    def _register_round(self, timestamp: str) -> int:
         with Session(self._db_engine) as session:
-            new_round = GameRound(round_nr=round_num)
+            new_round = GameRound(score_timestamp=timestamp)
             session.add(new_round)
             session.commit()
+            return new_round.id
 
     async def get_scores(self, url: str) -> bool:
         """Request score update from server.
@@ -146,14 +144,14 @@ class ScoreStoreService:
             return False
 
         scoreboard = response.json().get("success")
-        round_nr = len(scoreboard["highscore_labels"])
-        if self._round_is_registered(round_nr):
+        timestamp = scoreboard["highscore_labels"][-1]
+        if self._round_is_registered(timestamp):
             return False
         else:
-            self._register_round(round_nr)
+            round_id = self._register_round(timestamp)
 
-        self._process_service_status(scoreboard)
-        self._process_highscore_and_sla(scoreboard)
-        self._process_service_scores(scoreboard)
+        self._process_service_status(scoreboard, round_id)
+        self._process_highscore_and_sla(scoreboard, round_id)
+        self._process_service_scores(scoreboard, round_id)
 
         return True

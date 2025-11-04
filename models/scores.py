@@ -25,7 +25,7 @@ class GameRound(Base):
     timestamp_utc: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-    round_nr: Mapped[int] = mapped_column(unique=True)
+    score_timestamp: Mapped[str] = mapped_column()
     service_scores: Mapped[List["ServiceScore"]] = relationship(
         back_populates="game_round"
     )
