@@ -20,9 +20,13 @@ class ServiceRow(HorizontalGroup):
         match service_status:
             case "OK":
                 return "cOK"
+            case "FW":
+                return "cWARNING"
             case "FF":
                 return "cWARNING"
-            case "OF":
+            case "FR":
+                return "cWARNING"
+            case "FC":
                 return "cERROR"
             case _:
                 return "cNONE"
