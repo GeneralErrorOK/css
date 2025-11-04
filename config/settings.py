@@ -7,7 +7,7 @@ For markup, refer to style/css.tcss stylesheet.
 """
 URL to GET
 """
-SCOREBOARD_URL = "http://127.0.0.1:8000/api/scoreboard"
+SCOREBOARD_URL = "https://cybernet.certifiedsecure.org:4433/api/data"
 
 """
 Interval to (try to) refresh the scores in seconds.
@@ -69,5 +69,5 @@ NUM_SAMPLES is the amount of subdevisions you would like the scores from the las
 round of 2024 be interpolated by. Less samples means you go faster through the rounds.
 The original game consisted of 158 rounds, so 158 is a good starting point.
 """
-DEV_SERVER_MODE = True
+DEV_SERVER_MODE = False
 NUM_SAMPLES = 158

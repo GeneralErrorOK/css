@@ -34,11 +34,8 @@ class CybernetScoringSystem(App):
         self._counter = counter
         self._num_samples = num_samples
         self._engine = create_engine(f"sqlite:///db/{DB_FILENAME}", echo=False)
-        if DEV_SERVER_MODE:
-            Base.metadata.drop_all(bind=self._engine)
-            Base.metadata.create_all(bind=self._engine)
-        else:
-            Base.metadata.create_all(bind=self._engine)
+        Base.metadata.drop_all(bind=self._engine)
+        Base.metadata.create_all(bind=self._engine)
         self._score_store = ScoreStoreService(self._engine)
         self._stats_retriever = StatsRetriever(self._engine)
 
