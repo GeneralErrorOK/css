@@ -15,6 +15,11 @@ Interval to (try to) refresh the scores in seconds.
 REFRESH_INTERVAL_S = 10
 
 """
+The team we are in
+"""
+ME_TEAM = "xren"
+
+"""
 Filename to use for the database (sqlite). This will be stored in ./db.
 
 Warning: using DEV_SERVER_MODE (see below) the database will be wiped

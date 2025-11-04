@@ -3,6 +3,7 @@ from sqlalchemy import Engine, select
 from sqlalchemy.orm import Session
 from textual import log
 
+from config.settings import ME_TEAM
 from models.scores import (
     Service,
     ServiceStatus,
@@ -65,7 +66,7 @@ class ScoreStoreService:
         if len(scoreboard["highscore_labels"]) == 0:
             # No need to process an empty score ;)
             return
-        me = scoreboard["me"]
+        me = ME_TEAM
         round_id = self._get_round_id(scoreboard["round"])
         label = scoreboard["highscore_labels"][-1]
         highscores = []
