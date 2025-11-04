@@ -34,7 +34,10 @@ class ServiceRow(HorizontalGroup):
         if len(selection) == 0 or len(selection) == 1 or selection[0] == 0:
             return "cNONE"
 
-        difference_percent = ((selection[-1] - selection[0]) / selection[0]) * 100
+        # We want to know how the last score differs from the average of the previous scores in the series
+        average_of_previous = sum(selection[0:-1]) / len(selection[0:-1])
+        last_score = selection[-1]
+        difference_percent = abs((average_of_previous - last_score) / average_of_previous) * 100
 
         if offense:
             if difference_percent >= settings.OFFENSIVE_SCORE_THRESHOLDS["high"]:
