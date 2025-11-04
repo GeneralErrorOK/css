@@ -78,8 +78,8 @@ class ScoreStoreService:
                 highscore = highscore_unit["scores"][-1]
             highscores.append(highscore_unit["scores"][-1])
 
-        highscores.sort()
-        position = highscores.index(highscore)
+        highscores.sort(reverse=True)
+        position = highscores.index(highscore) + 1
 
         with Session(self._db_engine) as session:
             highscore_entry = HighscoreAndSLA(
